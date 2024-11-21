@@ -10,7 +10,7 @@ public class Mover : MonoBehaviour
         
     }
 
-    // Update is called once per frame
+    // Update is called once per frame  
     void Update()
     {
         float xInc = Input.GetAxis("Horizontal") * Time.deltaTime * moveSpeed;
