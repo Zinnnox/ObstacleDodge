@@ -7,10 +7,12 @@ using UnityEngine.UI;
 
 public class Mover : MonoBehaviour
 {
+    [Header("Movement Settings")]
     [SerializeField] float walkSpeed = 1f;
     [SerializeField] float sprintSpeed = 2f;
     [SerializeField] private float currentSpeed;
 
+    [Header("Camera Settings")]
     [SerializeField] GameObject cameraInstance;
     private CinemachineCamera Camera;
     private float walkFOV = 60f;

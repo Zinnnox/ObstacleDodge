@@ -74,11 +74,25 @@ public class PlayerStats : MonoBehaviour
         GameManager.Instance.ResetScene();
     }
 
+    public void TakeDamage(float damage)
+    {
+        health -= damage;
+        health = Mathf.Clamp(health, 0, 100f);
+
+        if (health <= 0)
+        {
+            Die();
+            UpdateUI();
+        }
+    }
+
     void UpdateUI()
     {
         healthBar.value = health;
         staminaBar.value = stamina;
         hungerBar.value = hunger;
     }
+
+
 
 }
