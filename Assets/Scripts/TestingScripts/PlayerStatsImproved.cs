@@ -38,6 +38,7 @@ public class PlayerStatsImproved : MonoBehaviour
         HandleSprinting();
         HandleHunger();
         UpdateUI(); // Update the UI sliders to show new stat values
+        //please pay attention
     }
 
     // STEP 6: Handle sprinting and stamina reduction
