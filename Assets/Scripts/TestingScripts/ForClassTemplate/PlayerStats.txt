@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PlayerStatsImproved : MonoBehaviour
+public class PlayerStats : MonoBehaviour
 {
     // STEP 1: Declare and organize variables for player stats
     [Header("Stats")] // These are the player's health, stamina, and hunger levels
@@ -22,9 +22,6 @@ public class PlayerStatsImproved : MonoBehaviour
     public float staminaRegenCooldown = 2f; // Cooldown before stamina starts regenerating
 
     private float nextStaminaRegenTime = 0f; // Timer to track when stamina can regenerate
-
-    private bool isHealthFlashing; // Flag to prevent multiple health flashes
-    public Image healthBarBackground; // For flashing health warnings
 
     void Start()
     {

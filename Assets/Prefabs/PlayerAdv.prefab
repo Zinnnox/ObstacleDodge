@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1815621110632768731}
   - component: {fileID: 2460496572937751364}
   - component: {fileID: 4842275574079046395}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -84,7 +84,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6046285874961882774}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Fill Area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -123,7 +123,7 @@ GameObject:
   - component: {fileID: 3810287270879647805}
   - component: {fileID: 531208585539824214}
   - component: {fileID: 5804931428323283196}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: StatsCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -187,7 +187,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 800, y: 600}
@@ -224,7 +224,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1858304012986487807}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Fill Area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -261,7 +261,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2844010227844492565}
   - component: {fileID: 2278872125583327506}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: HungerBar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -351,7 +351,7 @@ GameObject:
   - component: {fileID: 1029426520844798598}
   - component: {fileID: 5394997160198372765}
   - component: {fileID: 1576199022580397743}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Fill
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -425,7 +425,7 @@ GameObject:
   m_Component:
   - component: {fileID: 945192181274242088}
   - component: {fileID: 2838514795460515939}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: HealthBar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -515,7 +515,7 @@ GameObject:
   - component: {fileID: 5860831950515228562}
   - component: {fileID: 1893383654267249227}
   - component: {fileID: 1682083292686576752}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -589,7 +589,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1777747905828213881}
   - component: {fileID: 7579554851983496097}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: StaminaBar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -679,7 +679,7 @@ GameObject:
   - component: {fileID: 4156566202124913617}
   - component: {fileID: 3884666460131663173}
   - component: {fileID: 782529313941691018}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Fill
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -754,7 +754,7 @@ GameObject:
   - component: {fileID: 6786278992849652111}
   - component: {fileID: 3571849812691074446}
   - component: {fileID: 6901580838222286578}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -835,7 +835,8 @@ GameObject:
   - component: {fileID: 8310874353936960038}
   - component: {fileID: 6844282409145386269}
   - component: {fileID: 7585583491332067530}
-  m_Layer: 0
+  - component: {fileID: 821835227626681940}
+  m_Layer: 6
   m_Name: PlayerAdv
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -1009,7 +1010,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6238337050125856455}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 515e526f1f9003e47a5a6c60374bd902, type: 3}
   m_Name: 
@@ -1025,6 +1026,30 @@ MonoBehaviour:
   hungerDamage: 10
   staminaRegenRate: 15
   staminaRegenCooldown: 2
+--- !u!114 &821835227626681940
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6238337050125856455}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2318fd45cd49e1144b85536b39bc4c9e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  health: 100
+  stamina: 100
+  hunger: 100
+  healthBar: {fileID: 2838514795460515939}
+  staminaBar: {fileID: 7579554851983496097}
+  hungerBar: {fileID: 2278872125583327506}
+  sprintCost: 10
+  hungerDrain: 5
+  hungerDamage: 10
+  staminaRegenRate: 15
+  staminaRegenCooldown: 2
+  healthBarBackground: {fileID: 1682083292686576752}
 --- !u!1 &6261788957440593380
 GameObject:
   m_ObjectHideFlags: 0
@@ -1036,7 +1061,7 @@ GameObject:
   - component: {fileID: 8028283600710743603}
   - component: {fileID: 6109192831213902611}
   - component: {fileID: 2774772002133411362}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Fill
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1109,7 +1134,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 414632939810441826}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Fill Area
   m_TagString: Untagged
   m_Icon: {fileID: 0}

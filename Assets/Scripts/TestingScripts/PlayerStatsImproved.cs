@@ -120,7 +120,7 @@ public class PlayerStatsImproved : MonoBehaviour
         staminaBar.value = stamina;
         hungerBar.value = hunger;
     }
-
+ 
     // New Feature 1: Flash health bar when taking damage or hunger is critical
     void FlashHealthBar()
     {
