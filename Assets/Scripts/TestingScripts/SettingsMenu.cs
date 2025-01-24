@@ -11,8 +11,7 @@ public class SettingsMenu : MonoBehaviour
     public AudioMixer audioMixer;
     Resolution[] resolutions;
     [SerializeField] TMP_Dropdown resolutionDropdown;
-    [SerializeField] InputAction pauseMenuAction;
-    bool isPaused = false;
+    public GameObject pauseMenuUI;
     private void Start()
     {
         resolutions = Screen.resolutions;
@@ -23,6 +22,14 @@ public class SettingsMenu : MonoBehaviour
         resolutionDropdown.AddOptions(options);
         resolutionDropdown.value = currentResolutionIndex;
         resolutionDropdown.RefreshShownValue();
+    }
+
+    private void Update() 
+    {
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            ToggleMenu();
+        }
     }
 
     private int GetPossibleResolutionsForDisplay(List<string> options, int currentResolutionIndex)
@@ -63,12 +70,25 @@ public class SettingsMenu : MonoBehaviour
         Screen.SetResolution(resolution.width, resolution.height, Screen.fullScreen);
     }
 
-    public void ShowMenu()
+    public void ToggleMenu()
     {
-        gameObject.SetActive(true);
+        bool isPaused = pauseMenuUI.activeSelf;
+        pauseMenuUI.SetActive(!isPaused);
+
+        if (isPaused)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            Time.timeScale = 1f; // resume the game 
+
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            Time.timeScale = 0f; // pause the game
+        }
+        
     }
-    public void HideMenu()
-    {
-        gameObject.SetActive(false);
-    }
+
 }

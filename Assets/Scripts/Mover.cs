@@ -38,6 +38,8 @@ public class Mover : MonoBehaviour
     }
     private void SetDefaultValues()
     {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
         currentSpeed = walkSpeed;
         currentFOV = walkFOV;
     }
@@ -62,11 +64,14 @@ public class Mover : MonoBehaviour
             UpdateFOV(walkFOV);
         }
 
-        float xInc = Input.GetAxis("Horizontal") * Time.deltaTime * currentSpeed;
-        float yInc = 0f;
-        float zInc = Input.GetAxis("Vertical") * Time.deltaTime * currentSpeed;
+        float horizontal = Input.GetAxis("Horizontal") * currentSpeed * Time.deltaTime;
+        float vertical = Input.GetAxis("Vertical") * currentSpeed * Time.deltaTime;
 
-        transform.Translate(xInc,yInc,zInc);
+        Vector3 direction = new Vector3(horizontal, 0, vertical);
+        direction = Camera.transform.TransformDirection(direction);
+        direction.y = 0;
+
+        transform.Translate(direction, Space.World);
 
         Camera.Lens.FieldOfView = currentFOV;
     }
@@ -75,4 +80,5 @@ public class Mover : MonoBehaviour
     {
         currentFOV = Mathf.Lerp(currentFOV, targetFov, deltaFOV * Time.deltaTime);
     }
+
 }

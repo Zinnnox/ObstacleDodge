@@ -1,125 +1,183 @@
 using UnityEngine;
-using UnityEngine.AI;
+using UnityEngine.AI;            // This allows us to use Unity’s pathfinding system (NavMeshAgent).
+using UnityEngine.SceneManagement; // This is for loading scenes (like a game-over screen).
+using System.Collections;
+using System.Collections.Generic;
 
 public class EnemyAI : MonoBehaviour
 {
-    public enum State { Idle, Chasing, Returning }
-    private State currentState;
+    // -- Public Variables (Visible in the Inspector) --
+    public NavMeshAgent navAgent;           // The component that moves our enemy using Unity's pathfinding.
 
-    [Header("Vision Settings")]
-    public float visionRange = 10f;        // How far the enemy can see
-    public float visionAngle = 60f;        // The cone angle (field of view)
-    public Transform eyes;                 // The point where the enemy's vision starts
-    public LayerMask playerLayer;          // Layer for detecting the player
-    public LayerMask obstructionLayer;     // Layer for objects that block vision
+    public GameObject waypointsGroup;       // A group containing the waypoints the enemy can move to.
+    private List<Transform> waypoints;       // A list of possible waypoints the enemy can move to.
+    public Animator animationController;     // Controls which animation to play (walking, sprinting, idle, etc.).
 
-    [Header("Chase Settings")]
-    public float chaseTime = 5f;           // Time to chase after losing sight
-    private float chaseTimer;
+    // Movement speeds and timers
+    public float walkSpeed;
+    public float chaseSpeed;
+    public float minIdleTime;
+    public float maxIdleTime;
+    public float idleTime;                  // How long the enemy will stand idle.
+    public float sightDistance;             // How far the enemy can "see" the player.
+    public float catchDistance;             // How close the enemy needs to be to catch the player.
+    public float chaseTime;
+    public float minChaseTime;
+    public float maxChaseTime;
+    public float jumpscareTime;             // How long the jumpscare animation plays before switching scenes.
 
-    [Header("NavMesh")]
-    private NavMeshAgent agent;            // The NavMeshAgent component
-    private Transform player;              // Reference to the player
+    // Booleans to keep track of our enemy's state
+    public bool isWalking;                  // True if the enemy is walking to a waypoint.
+    public bool isChasing;                  // True if the enemy is actively chasing the player.
 
-    private Vector3 initialPosition;       // Enemy's starting position
+    // Other references
+    public Transform player;                // Reference to the player's position.
+    public Vector3 raycastOffset;           // Offset for the raycast start position to avoid self-collision.
+    public string deathScene;               // The scene to load if the enemy catches the player.
+
+    // Private variables
+    private Transform currentWaypoint;      // The waypoint the enemy is currently walking to.
+    private Vector3 destination;            // The actual position passed to the NavMeshAgent.
+    private int randomIndex;                // A random number to pick a waypoint from the list.
 
     void Start()
     {
-        agent = GetComponent<NavMeshAgent>();
-        player = GameObject.FindGameObjectWithTag("Player").transform;
-
-        initialPosition = transform.position;
-        currentState = State.Idle;
+        // At the start, we set the enemy to be walking and choose a random waypoint.
+        InitializeWaypoints();
+        isWalking = true;
+        randomIndex = Random.Range(0, waypoints.Count);
+        currentWaypoint = waypoints[randomIndex];
     }
 
     void Update()
     {
-        switch (currentState)
-        {
-            case State.Idle:
-                HandleIdle();
-                break;
-            case State.Chasing:
-                HandleChasing();
-                break;
-            case State.Returning:
-                HandleReturning();
-                break;
-        }
-    }
+        // 1. Detect player with a Raycast
+        // We shoot a ray from the enemy's position (plus an offset) towards the player to see if they are in sight.
+        Vector3 directionToPlayer = (player.position - transform.position).normalized;
+        RaycastHit hitInfo;
 
-    // STEP 1: Handle the enemy's idle behavior and check for spotting the player
-    void HandleIdle()
-    {
-        agent.isStopped = true; // Stop moving while idle
-
-        if (PlayerInSight())
+        if (Physics.Raycast(transform.position + raycastOffset, directionToPlayer, out hitInfo, sightDistance))
         {
-            currentState = State.Chasing; // Transition to chasing
-            chaseTimer = chaseTime;       // Reset chase timer
-        }
-    }
-
-    // STEP 2: Handle chasing behavior
-    void HandleChasing()
-    {
-        agent.isStopped = false; 
-        agent.SetDestination(player.position); // Move towards the player
-
-        if (PlayerInSight())
-        {
-            chaseTimer = chaseTime; // Reset the timer if the player is still visible
-        }
-        else
-        {
-            chaseTimer -= Time.deltaTime;
-            if (chaseTimer <= 0f)
+            // If the ray hits the player, start chasing!
+            if (hitInfo.collider.gameObject.CompareTag("Player"))
             {
-                currentState = State.Returning; // Return to idle if timer runs out
+                isWalking = false;
+
+                // Make sure we stop any ongoing Coroutines, so we don't conflict with the new chase.
+                StopCoroutine("stayIdle");
+                StopCoroutine("chaseRoutine");
+
+                StartCoroutine("chaseRoutine");
+                isChasing = true;
+            }
+        }
+
+        // 2. Chasing Logic
+        if (isChasing)
+        {
+            // Move towards the player's position at chase speed.
+            destination = player.position;
+            navAgent.destination = destination;
+            navAgent.speed = chaseSpeed;
+
+            // Update animations to sprint
+            animationController.ResetTrigger("walk");
+            animationController.ResetTrigger("idle");
+            animationController.SetTrigger("sprint");
+
+            // Check if we are close enough to catch the player.
+            float distanceToPlayer = Vector3.Distance(player.position, transform.position);
+            if (distanceToPlayer <= catchDistance)
+            {
+                // Player is caught! Hide the player and start the jumpscare.
+                player.gameObject.SetActive(false);
+
+                // Set the jumpscare animation.
+                animationController.ResetTrigger("walk");
+                animationController.ResetTrigger("idle");
+                animationController.ResetTrigger("sprint");
+                animationController.SetTrigger("jumpscare");
+
+                StartCoroutine(DeathRoutine());
+                isChasing = false;
+            }
+        }
+
+        // 3. Walking Logic
+        if (isWalking)
+        {
+            // The enemy heads towards its current waypoint at a walking pace.
+            destination = currentWaypoint.position;
+            navAgent.destination = destination;
+            navAgent.speed = walkSpeed;
+
+            // Update animations to walk
+            animationController.ResetTrigger("sprint");
+            animationController.ResetTrigger("idle");
+            animationController.SetTrigger("walk");
+
+            // If the enemy reaches the waypoint, it goes idle for a moment.
+            if (navAgent.remainingDistance <= navAgent.stoppingDistance)
+            {
+                // Switch to idle animation and start idle timer.
+                animationController.ResetTrigger("sprint");
+                animationController.ResetTrigger("walk");
+                animationController.SetTrigger("idle");
+
+                navAgent.speed = 0; // Enemy stops moving.
+
+                // Make sure we stop and restart the idle routine properly.
+                StopCoroutine("stayIdle");
+                StartCoroutine("stayIdle");
+
+                isWalking = false;
             }
         }
     }
 
-    // STEP 3: Handle returning to the initial position
-    void HandleReturning()
+    private void InitializeWaypoints()
     {
-        agent.SetDestination(initialPosition);
+        waypoints = new List<Transform>();
 
-        if (Vector3.Distance(transform.position, initialPosition) < 1f)
+        // Populate the waypoints list with the positions of each child of waypointsGroup
+        foreach (Transform child in waypointsGroup.transform)
         {
-            currentState = State.Idle; // Return to idle state when back at starting position
+            waypoints.Add(child.transform);
         }
     }
 
-    // STEP 4: Check if the player is within the enemy's cone of vision
-    bool PlayerInSight()
+
+    IEnumerator stayIdle()
     {
-        Vector3 directionToPlayer = (player.position - eyes.position).normalized;
-        float angleToPlayer = Vector3.Angle(transform.forward, directionToPlayer);
+        // Wait for a random amount of time between minIdleTime and maxIdleTime.
+        idleTime = Random.Range(minIdleTime, maxIdleTime);
+        yield return new WaitForSeconds(idleTime);
 
-        if (angleToPlayer < visionAngle / 2 && Vector3.Distance(transform.position, player.position) <= visionRange)
-        {
-            // Check for obstacles between the enemy and the player
-            if (!Physics.Raycast(eyes.position, directionToPlayer, visionRange, obstructionLayer))
-            {
-                return true; // Player is visible
-            }
-        }
-
-        return false;
+        // After waiting, the enemy picks another waypoint and starts walking again.
+        isWalking = true;
+        randomIndex = Random.Range(0, waypoints.Count);
+        currentWaypoint = waypoints[randomIndex];
     }
 
-    // STEP 5: Visualize the cone of vision in the Scene view
-    void OnDrawGizmos()
+    IEnumerator chaseRoutine()
     {
-        if (eyes == null) return;
+        // The enemy will chase for a random amount of time between minChaseTime and maxChaseTime.
+        chaseTime = Random.Range(minChaseTime, maxChaseTime);
+        yield return new WaitForSeconds(chaseTime);
 
-        Gizmos.color = Color.yellow;
-        Vector3 rightBoundary = Quaternion.Euler(0, visionAngle / 2, 0) * transform.forward;
-        Vector3 leftBoundary = Quaternion.Euler(0, -visionAngle / 2, 0) * transform.forward;
+        // Once done chasing, the enemy goes back to walking.
+        isWalking = true;
+        isChasing = false;
 
-        Gizmos.DrawRay(eyes.position, rightBoundary * visionRange);
-        Gizmos.DrawRay(eyes.position, leftBoundary * visionRange);
-        Gizmos.DrawLine(eyes.position, eyes.position + transform.forward * visionRange);
+        // Pick a new waypoint randomly.
+        randomIndex = Random.Range(0, waypoints.Count);
+        currentWaypoint = waypoints[randomIndex];
+    }
+
+    IEnumerator DeathRoutine()
+    {
+        // Wait for the jumpscare animation to finish, then load the deathScene.
+        yield return new WaitForSeconds(jumpscareTime);
+        SceneManager.LoadScene(deathScene);
     }
 }
