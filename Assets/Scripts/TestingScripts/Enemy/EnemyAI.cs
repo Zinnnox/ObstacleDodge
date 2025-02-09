@@ -80,10 +80,10 @@ public class EnemyAI : MonoBehaviour
             navAgent.destination = destination;
             navAgent.speed = chaseSpeed;
 
-            // Update animations to sprint
+            // Update animations to walk (since sprint is not available)
             animationController.ResetTrigger("walk");
             animationController.ResetTrigger("idle");
-            animationController.SetTrigger("sprint");
+            animationController.SetTrigger("walk");
 
             // Check if we are close enough to catch the player.
             float distanceToPlayer = Vector3.Distance(player.position, transform.position);
@@ -95,7 +95,6 @@ public class EnemyAI : MonoBehaviour
                 // Set the jumpscare animation.
                 animationController.ResetTrigger("walk");
                 animationController.ResetTrigger("idle");
-                animationController.ResetTrigger("sprint");
                 animationController.SetTrigger("jumpscare");
 
                 StartCoroutine(DeathRoutine());
@@ -112,7 +111,6 @@ public class EnemyAI : MonoBehaviour
             navAgent.speed = walkSpeed;
 
             // Update animations to walk
-            animationController.ResetTrigger("sprint");
             animationController.ResetTrigger("idle");
             animationController.SetTrigger("walk");
 
@@ -120,7 +118,6 @@ public class EnemyAI : MonoBehaviour
             if (navAgent.remainingDistance <= navAgent.stoppingDistance)
             {
                 // Switch to idle animation and start idle timer.
-                animationController.ResetTrigger("sprint");
                 animationController.ResetTrigger("walk");
                 animationController.SetTrigger("idle");
 
