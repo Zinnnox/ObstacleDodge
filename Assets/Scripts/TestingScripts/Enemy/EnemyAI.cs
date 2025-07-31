@@ -143,7 +143,6 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-
     IEnumerator stayIdle()
     {
         // Wait for a random amount of time between minIdleTime and maxIdleTime.

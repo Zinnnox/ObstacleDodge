@@ -1,6 +1,7 @@
 using Unity.Cinemachine;
 using UnityEngine;
 using Custom;
+using System.Collections;
 
 [RequireComponent(typeof(Rigidbody))]
 public class RBBasedPlayerMovement : MonoBehaviour
@@ -10,6 +11,8 @@ public class RBBasedPlayerMovement : MonoBehaviour
     [SerializeField] private float sprintSpeed = 10f;
     [SerializeField] private float jumpForce = 5f;
     [SerializeField] private float gravityMultiplier = 2f;
+    [SerializeField] private float dashSpeed = 20f;
+    [SerializeField] private float dashDuration = 0.2f;
 
     [Header("Camera Settings")]
     [SerializeField] private CinemachineCamera playerCamera;
@@ -21,6 +24,7 @@ public class RBBasedPlayerMovement : MonoBehaviour
     public GroundCheck groundCheck;
     private bool isGrounded;
     private float currentFOV;
+    private bool isDashing = false;
 
     void Start()
     {
@@ -40,31 +44,55 @@ public class RBBasedPlayerMovement : MonoBehaviour
 
     private void HandleMovement()
     {
-        float speed = Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : walkSpeed;
+        // Exit early if the player is currently dashing
+        if (isDashing) return;
 
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float vertical = Input.GetAxisRaw("Vertical");
+        // Determine movement speed based on whether the sprint key is held
+        float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : walkSpeed;
 
-        Vector3 direction = new Vector3(horizontal, 0, vertical);
-        direction = playerCamera.transform.TransformDirection(direction);
-        direction.y = 0; // Keep the movement horizontal
+        // Get input for horizontal and vertical movement
+        float inputHorizontal = Input.GetAxisRaw("Horizontal");
+        float inputVertical = Input.GetAxisRaw("Vertical");
 
-        Vector3 move = direction * speed;
-        Vector3 velocity = new Vector3(move.x, rb.linearVelocity.y, move.z); // Preserve the y-component of the velocity
-        rb.linearVelocity = velocity;
+        // Calculate movement direction relative to the camera's orientation
+        Vector3 inputDirection = new Vector3(inputHorizontal, 0, inputVertical);
+        Vector3 worldDirection = playerCamera.transform.TransformDirection(inputDirection);
+        worldDirection.y = 0; // Ensure movement stays horizontal
+
+        // Set the Rigidbody's linear velocity for movement, preserving vertical velocity
+        Vector3 movementVelocity = worldDirection * currentSpeed;
+        rb.linearVelocity = new Vector3(movementVelocity.x, rb.linearVelocity.y, movementVelocity.z);
+
+        // Check for dash input and initiate dash if conditions are met
+        if (Input.GetKeyDown(KeyCode.Q) && (inputHorizontal != 0 || inputVertical != 0))
+        {
+            StartCoroutine(Dash(worldDirection));
+        }
+    }
+
+    private IEnumerator Dash(Vector3 direction)
+    {
+        isDashing = true;
+        float startTime = Time.time;
+
+        while (Time.time < startTime + dashDuration)
+        {
+            rb.linearVelocity = direction * dashSpeed;
+            yield return null;
+        }
+
+        isDashing = false;
     }
 
     private void HandleJump()
     {
-        //isGrounded = Physics.Raycast(transform.position, Vector3.down, 1.1f);
-
         if (groundCheck.IsOnGround && Input.GetButtonDown("Jump"))
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         }
 
         // Apply extra gravity manually for better control
-        if (!isGrounded)
+        if (!groundCheck.IsOnGround)
         {
             rb.AddForce(Vector3.down * gravityMultiplier, ForceMode.Acceleration);
         }
